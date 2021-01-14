@@ -1,106 +1,172 @@
-# CoreTempMonitorSwift
-> A simple API for read AlCPU CoreTemp data to make your own Monitor App for iOS, macOS, watchOS or tvOS.
+# IntegrityManagerSwift
+> An unified product for check many topics about integrity & security.
 
 ## Installation
 
-### CoreTemp + CoreTempRemoteServer Addon
-Firstly, install CoreTemp and CoreTempRemoteServer addon for start to receive data by net socket from following URLs:
-CoreTemp main program: https://www.alcpu.com/CoreTemp/Core-Temp-setup.exe
-RemoteServer Addon: https://www.alcpu.com/CoreTemp/AddOns/CoreTempRemoteServer.zip
-
-Configure port number of RemoteServer and start it.
-
-### Swift size
-
-Add the Swift Package to your project from url: https://github.com/CodeNationDev/CoreTempMonitorSwift.git
+[Add the Swift Package to your project from url: https://github.com/CodeNationDev/IntegritySwift.git
 
 ## Definition & Interface
+This product has been developd as class type with @objc flags for allow the usage from swift and ObjC.
+
 ```swift
-public convenience init(ip: String, port: String , using: NWParameters)
+@objc public static var isSecure: Bool
 ```
-- ip (String): endpoint of machine where CoreTempServer is running.
-- port (String): the port number where CoreTempServer is publishing the data.
-- using (NWParameters): enumerated that defines the protocol to read data.
+When you request the value of this variable, the result (true/false) is generated besed on all security checks passed in that moment.
 
-## Entities
-All data info has been strcutured in following objects
 ```swift
-//
-import Foundation
-struct CpuInfo: Codable {
-    var uiLoad: [Int]?
-    var uiTjMax: [Int]?
-    var uiCoreCnt: Int?
-    var uiCPUCnt: Int?
-    var fTemp: [Int]?
-    var fVID: Float?
-    var fCPUSpeed: Float?
-    var fFSBSpeed: Float?
-    var fMultiplier: Int?
-    var CPUName: String?
-    var ucFahrenheit: Int?
-    var ucDeltaToTjMax: Int?
-    var ucTdpSupported: Int?
-    var ucPowerSupported: Int?
-    var uiStructVersion: Int?
-    var  uiTdp: [Int]?
-    var fPower: [Float]?
-    var fMultipliers: [Int]?
+@objc public static var globalControlsResults: [SecurityResult]
+```
+This object return an array with the object (defined at models file) that contains the results of all checks evaluated, and it have following structure:
+
+```swift
+@objc public enum SecurityControlType: Int {
+    case jailbreak = 0
+    case simulator = 1
+    case debugger = 2
+    case reverse = 3
 }
 
-struct MemoryInfo: Codable {
-    var TotalPhys: Int64?
-    var FreePhys: Int64?
-    var TotalPage: Int64?
-    var FreePage: Int64?
-    var TotalVirtual: Int64?
-    var FreeVirtual: Int64?
-    var FreeExtendedVirtual: Int?
-    var MemoryLoad: Int?
-}
-
-public struct CoreTempObject: Codable {
-    var CpuInfo: CpuInfo?
-    var MemoryInfo: MemoryInfo?
+@objc public class SecurityResult: NSObject {
+    @objc public var passed: Bool = true
+    @objc public var reason: String = ""
+    @objc public var type: SecurityControlType
+    
+    @objc public init(_ passed: Bool, _ reason: String, _ type: SecurityControlType) {
+        self.passed = passed
+        self.reason = reason
+        self.type = type
+    }
 }
 ```
 
-The most relevant info for this objects is:
+Also, you can request the state of any individual check of all available. 
 
-> - **ucFahrenheit**, **ucDeltaToTjMax**, **ucTdpSupported** and **ucPowerSupported** represent boolean values. 0 = false, 1 = true.
-> - If **ucFahrenheit** is true, the temperature is reported in Fahrenheit.
-> - If **ucDeltaToTjMax** is true, the temperature reported represents the distance from TjMax.
-> - If **ucTdpSupported** is true, processor TDP information in the uiTdp array is valid.
-> - If **ucPowerSupported** is true, processor power consumption information in the fPower array is valid.
+#### Jailbreak
 
-Use each one for design your monitor.
+Global Jailbreak passchecks
+```swift
+@objc public static var isDeviceJailbroken: Bool
+```
+
+The object array with check results.
+```swift
+@objc public static var jailbreakControlsResults: [SecurityResult]
+```
+
+Sandbox violation passcheck. Check existence of files that are common for jailbroken devices
+```swift
+@objc public static func jailbreakSuspiciousFilesCheck() -> SecurityResult
+```
+
+If we can execute a Cyda urlScheme, the device is jailbroken
+```swift
+@objc public static func jailbreakUrlSchemes() -> SecurityResult
+```
+
+This check looks for the exist of suspicious dylibs.
+```swift
+@objc public static func jailbreakDYLD() -> SecurityResult
+```
+
+This check detects a forked proccess.
+```swift
+public static func jailbreakFork() -> SecurityResult
+```
+
+#### Debugger state
+
+Global Debugger state passchecks
+```swift
+@objc public static func amIDebugged() -> SecurityResult
+```
+
+Function for deny debug mode
+```swift
+@objc public static func denyDebugger()
+```
+
+#### Reverse Engineering
+
+Global checks for Reverse Engineering
+```swift
+@objc public static func amIReverseEngineered() -> Bool
+```
+
+The object array with check results. 
+```swift
+public static var antiReverseControlsResults: [SecurityResult]
+```
+
+Checks for suspicious libraries.
+```swift
+public static func checkDYLD() -> SecurityResult
+```
+
+Check suspicious files
+```swift
+public static func checkExistenceOfSuspiciousFiles() -> SecurityResult 
+```
+
+Check opened ports
+```swift
+public static func checkOpenedPorts() -> SecurityResult 
+```
+
+Check if we can open a local connection in a specific port.
+```swift
+public static func canOpenLocalConnection(port: Int) -> SecurityResult
+```
+
+#### Simulator
+
+Global check for simulatoir discoverer.
+
+```swift
+@objc public static func isRunningInSimulator() -> Bool
+```
+
+
+
 
 ## Usage example
-### Initialize
-Object instance runs the socket read. If you want to stop the reading call stop() function directly.
+
+Simply get the isSecure value:
+
+#### Swift
 ```swift
 //
 import UIKit
-import CoreTempMonitorSwift
+import IntegirtySwift
 
-class ViewController: UIViewController {
-    let sManager = SocketManager(ip: "192.168.1.69", port: "5200", using: .tcp)
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        sManager.delegate = self
-    }
-    @IBAction func stop_tapped(_ sender: Any) {
-        sManager.stop()
-    }
-}
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
 
-extension ViewController: CoreTempMonitorSwiftDelegate {
-    func didReadData(data: CoreTempObject) {
-        //do something
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        if !IntegrityManager.isSecure {
+            //do something if device device is not secure.
+        }
+        
+        if !JailbreakDiscoverer.isDeviceJailbroken {
+            //do something if device jailbroken
+        }
+        
+        if DebuggerDiscoverer.amIDebugged().passed {
+            //do something if the device is a simulator
+        }
+        
+        return true
+    }
+
+```
+
+#### Objetive-C
+```objective-c
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+if (!SecurityManager.isSecure) {
+      //do something if device is not secure.
     }
 }
 ```
-
 
 ## Meta
 

@@ -26,7 +26,7 @@ import MachO
     
     /// Checks for suspicious library of usual jailbreaks methods.
     /// - Returns: Reuslt object of check.
-    private static func checkDYLD() -> SecurityResult {
+    public static func checkDYLD() -> SecurityResult {
 
         let suspiciousLibraries = [
             "FridaGadget",
@@ -53,7 +53,7 @@ import MachO
     
     /// Check suspicious files related with any jailbreak method.
     /// - Returns: Reuslt object of check.
-    private static func checkExistenceOfSuspiciousFiles() -> SecurityResult {
+    public static func checkExistenceOfSuspiciousFiles() -> SecurityResult {
 
         let paths = [
             "/usr/sbin/frida-server"
@@ -71,7 +71,7 @@ import MachO
     
     /// Checks if can open injection ports.
     /// - Returns: Reuslt object of check.
-    private static func checkOpenedPorts() -> SecurityResult {
+    public static func checkOpenedPorts() -> SecurityResult {
 
         let ports = [
             27042, // Frida port
@@ -95,7 +95,7 @@ import MachO
     /// Bussines code for open port check.
     /// - Parameter port: Port number as Integer.
     /// - Returns: Reuslt object of check.
-    private static func canOpenLocalConnection(port: Int) -> SecurityResult {
+    public static func canOpenLocalConnection(port: Int) -> SecurityResult {
 
         func swapBytesIfNeeded(port: in_port_t) -> in_port_t {
             let littleEndian = Int(OSHostByteOrder()) == OSLittleEndian

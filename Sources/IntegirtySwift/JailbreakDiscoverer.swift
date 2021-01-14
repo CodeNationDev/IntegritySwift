@@ -15,7 +15,7 @@ import UIKit
         return false
     }
     
-    @objc internal static var jailbreakControlsResults: [SecurityResult] {
+    @objc public static var jailbreakControlsResults: [SecurityResult] {
         let jailresults: [SecurityResult] = {
             var results: [SecurityResult] = []
             results.append(JailbreakDiscoverer.jailbreakSandboxViolation())
@@ -135,7 +135,7 @@ import UIKit
         return SecurityResult(false,"[JAILBREAK] URL Schemes check OK", .jailbreak)
     }
     
-    private static func jailbreakFork() -> SecurityResult {
+    public static func jailbreakFork() -> SecurityResult {
         
         let pointerToFork = UnsafeMutableRawPointer(bitPattern: -2)
         let forkPtr = dlsym(pointerToFork, "fork")
