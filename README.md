@@ -177,5 +177,5 @@ Distributed under the MIT license. See ``LICENSE`` for more information.
 [https://github.com/CodeNationDev/](https://github.com/CodeNationDev)
 
 ## Version History
-* 0.0.1
+* 1.0.0
     * First implementation with main features.
