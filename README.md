@@ -1,4 +1,4 @@
-# IntegrityManagerSwift
+# IntegritySwift
 > An unified product for check many topics about integrity & security.
 
 ## Installation
